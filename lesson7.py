@@ -1,11 +1,8 @@
-import os
 import asyncio
-from dotenv import load_dotenv
+from decouple import config
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from pytimeparse import parse
-
-API_TOKEN = None
 
 def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='█', zfill='░'):
     iteration = min(total, iteration)
@@ -38,11 +35,9 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    global API_TOKEN
-    load_dotenv()
-    API_TOKEN = os.getenv('API_TOKEN')
+    api_token = config('API_TOKEN')
 
-    app = ApplicationBuilder().token(API_TOKEN).build()
+    app = ApplicationBuilder().token(api_token).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply))
     app.run_polling()
 
