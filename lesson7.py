@@ -5,16 +5,15 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 from pytimeparse import parse
 
-load_dotenv()
-API_TOKEN = os.getenv('TG_TOKEN')
+API_TOKEN = None
 
 def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='█', zfill='░'):
     iteration = min(total, iteration)
-    percent = "{0:.1f}"
-    percent = percent.format(100 * (iteration / float(total)))
+    percent = "{0:.1f}".format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
     pbar = fill * filled_length + zfill * (length - filled_length)
     return '{0} |{1}| {2}% {3}'.format(prefix, pbar, percent, suffix)
+
 
 async def notify_progress(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message_id: int, secs_left: int):
     total = secs_left
@@ -28,6 +27,7 @@ async def notify_progress(context: ContextTypes.DEFAULT_TYPE, chat_id: int, mess
         if remaining > 0:
             await asyncio.sleep(1)
 
+
 async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     delay = parse(user_input)
@@ -36,10 +36,16 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await notify_progress(context, update.effective_chat.id, message.message_id, delay)
     await update.message.reply_text("Время вышло")
 
+
 def main():
+    global API_TOKEN
+    load_dotenv()
+    API_TOKEN = os.getenv('API_TOKEN')
+
     app = ApplicationBuilder().token(API_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply))
     app.run_polling()
+
 
 if __name__ == '__main__':
     main()
